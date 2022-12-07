@@ -40,7 +40,11 @@ const promptForWeek = async () =>
 
 const readActivitiesForWeek = (week: string) =>
   readdirSync(join(CURICULUM_PATH, week, ACTIVITIES_DIRECTORY), { withFileTypes: true })
-    .filter((dirent) => dirent.isDirectory())
+    .filter(
+      (dirent) =>
+        dirent.isDirectory() &&
+        readdirSync(join(CURICULUM_PATH, week, ACTIVITIES_DIRECTORY, dirent.name)).includes("Solved")
+    )
     .map((dirent) => dirent.name);
 
 const promptForActivities = async (week: string) =>
