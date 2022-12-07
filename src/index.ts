@@ -1,8 +1,12 @@
 import Enquirer from "enquirer";
 import { readdirSync } from "fs";
+import { copySync } from "fs-extra";
 import { join } from "path";
 
 const ACTIVITIES_DIRECTORY = "01-Activities";
+const ALGORITHMS_DIRECTORY = "03-Algorithms";
+const PROJECT_MAIN_DIRECTORY = "Main";
+const SOLVED_DIRECTORY = "Solved";
 const CURICULUM_PATH = join(__dirname, "..", "..", "fullstack-ground", "01-Class-Content");
 const CLASS_REPO_PATH = join(__dirname, "..", "..", "UofM-VIRT-FSF-PT-11-2022-U-LOLC");
 
@@ -49,13 +53,35 @@ const promptForActivities = async (week: string) =>
     })
   ).activities;
 
+const copyWeekWithoutSolved = (week: string) => {
+  const filterSolved = (src: string, dest: string) => {
+    console.log(src);
+    return (
+      (!src.includes(SOLVED_DIRECTORY) && !src.includes(PROJECT_MAIN_DIRECTORY)) || src.includes(ALGORITHMS_DIRECTORY)
+    );
+  };
+  copySync(join(CURICULUM_PATH, week), join(CLASS_REPO_PATH, week), { filter: filterSolved });
+};
+
+const copySolvedForActivieties = (week: string, activities: string[]) => {
+  activities
+    .filter((activity) => activity.includes("Stu"))
+    .forEach((activity) =>
+      copySync(
+        join(CURICULUM_PATH, week, ACTIVITIES_DIRECTORY, activity, SOLVED_DIRECTORY),
+        join(CLASS_REPO_PATH, week, ACTIVITIES_DIRECTORY, activity, SOLVED_DIRECTORY)
+      )
+    );
+};
+
 const main = async () => {
   const action = await promptForAction();
   const week = await promptForWeek();
   if (action === "UPDATE_UNSOLVED") {
+    copyWeekWithoutSolved(week);
   } else {
     const activities = await promptForActivities(week);
-    console.log(activities);
+    copySolvedForActivieties(week, activities);
   }
 };
 

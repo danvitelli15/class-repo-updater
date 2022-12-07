@@ -7,10 +7,12 @@
     "start": "yarn tsc && node dist/index.js"
   },
   "devDependencies": {
+    "@types/fs-extra": "^9.0.13",
     "@types/node": "^18.11.10",
     "typescript": "^4.9.3"
   },
   "dependencies": {
-    "enquirer": "^2.3.6"
+    "enquirer": "^2.3.6",
+    "fs-extra": "^11.1.0"
   }
 }
