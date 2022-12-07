@@ -9,4 +9,5 @@ The project currently requires the following folder structure:
 - `class-content-sync-tool`
 - `fullstack-ground` (curriculum repo)
 - `<class-name>` (class repo)
-  with the class name needing to be updated in the source code
+
+with the class name needing to be updated in the source code
