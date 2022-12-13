@@ -1,3 +1,4 @@
+import { execSync } from "child_process";
 import Enquirer from "enquirer";
 import { readdirSync } from "fs";
 import { copySync } from "fs-extra";
@@ -12,6 +13,24 @@ const CLASS_REPO_PATH = join(__dirname, "..", "..", "UofM-VIRT-FSF-PT-11-2022-U-
 
 type Action = "UPDATE_UNSOLVED" | "UPDATE_SOLVED";
 const ACTIONS: Action[] = ["UPDATE_UNSOLVED", "UPDATE_SOLVED"];
+
+const gitPullSource = () => {
+  console.log("Pulling from curriculum repo");
+  const output = execSync(`git pull`, { cwd: CURICULUM_PATH });
+};
+
+const gitPullClassRepo = () => {
+  console.log("Pulling from class repo");
+  const output = execSync(`git pull`, { cwd: CLASS_REPO_PATH });
+};
+
+const gitCommitAndPushClassRepo = () => {
+  console.log("Committing and pushing to class repo");
+  const output = execSync(`git add . && git commit -m "Update class repo" && git push`, { cwd: CLASS_REPO_PATH });
+};
+
+const promptShouldCommitAndPush = async () =>
+  Enquirer.prompt<{ commit: boolean }>({ type: "confirm", name: "commit", message: "Commit and push to class repo?" });
 
 const promptForAction = async () =>
   (
@@ -79,13 +98,21 @@ const copySolvedForActivieties = (week: string, activities: string[]) => {
 };
 
 const main = async () => {
+  gitPullSource();
+  gitPullClassRepo();
+
   const action = await promptForAction();
   const week = await promptForWeek();
+
   if (action === "UPDATE_UNSOLVED") {
     copyWeekWithoutSolved(week);
   } else {
     const activities = await promptForActivities(week);
     copySolvedForActivieties(week, activities);
+  }
+
+  if ((await promptShouldCommitAndPush()).commit) {
+    gitCommitAndPushClassRepo();
   }
 };
 
