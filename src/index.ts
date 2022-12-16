@@ -17,16 +17,22 @@ const ACTIONS: Action[] = ["UPDATE_UNSOLVED", "UPDATE_SOLVED"];
 const gitPullSource = () => {
   console.log("Pulling from curriculum repo");
   const output = execSync(`git pull`, { cwd: CURICULUM_PATH });
+  console.log(output.toString());
 };
 
 const gitPullClassRepo = () => {
   console.log("Pulling from class repo");
   const output = execSync(`git pull`, { cwd: CLASS_REPO_PATH });
+  console.log(output.toString());
 };
 
-const gitCommitAndPushClassRepo = () => {
+const gitCommitAndPushClassRepo = (action: string, week: string, activities: string[] | null) => {
   console.log("Committing and pushing to class repo");
-  const output = execSync(`git add . && git commit -m "Update class repo" && git push`, { cwd: CLASS_REPO_PATH });
+  const contentMessage = `week ${week}${activities ? activities.map((activity) => activity.split("-")[0]) : ""}`;
+  const output = execSync(`git add . && git commit -m "Adding ${action} for ${contentMessage}" && git push`, {
+    cwd: CLASS_REPO_PATH,
+  });
+  console.log(output.toString());
 };
 
 const promptShouldCommitAndPush = async () =>
@@ -77,12 +83,8 @@ const promptForActivities = async (week: string) =>
   ).activities;
 
 const copyWeekWithoutSolved = (week: string) => {
-  const filterSolved = (src: string, dest: string) => {
-    console.log(src);
-    return (
-      (!src.includes(SOLVED_DIRECTORY) && !src.includes(PROJECT_MAIN_DIRECTORY)) || src.includes(ALGORITHMS_DIRECTORY)
-    );
-  };
+  const filterSolved = (src: string, dest: string) =>
+    (!src.includes(SOLVED_DIRECTORY) && !src.includes(PROJECT_MAIN_DIRECTORY)) || src.includes(ALGORITHMS_DIRECTORY);
   copySync(join(CURICULUM_PATH, week), join(CLASS_REPO_PATH, week), { filter: filterSolved });
 };
 
@@ -103,16 +105,17 @@ const main = async () => {
 
   const action = await promptForAction();
   const week = await promptForWeek();
+  let activities = null;
 
   if (action === "UPDATE_UNSOLVED") {
     copyWeekWithoutSolved(week);
   } else {
-    const activities = await promptForActivities(week);
+    activities = await promptForActivities(week);
     copySolvedForActivieties(week, activities);
   }
 
   if ((await promptShouldCommitAndPush()).commit) {
-    gitCommitAndPushClassRepo();
+    gitCommitAndPushClassRepo(action, week, activities);
   }
 };
 
